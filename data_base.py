@@ -11,7 +11,7 @@ def create_table():
                     (
                         word               TEXT NOT NULL,
                         translation        TEXT NOT NULL,
-                        created_at         TEXT NOT NULL,
+                        next_shipping_date         TEXT NOT NULL,
                         number_of_messages INTEGER DEFAULT 0
                     );"""
             )
@@ -22,17 +22,17 @@ def select_all_rows():
     with closing(sqlite3.connect("db/english.db")) as connection:
         with closing(connection.cursor()) as cursor:
             return cursor.execute(
-                """SELECT word, translation, created_at, number_of_messages
+                """SELECT word, translation, next_shipping_date, number_of_messages
                     FROM english;"""
             ).fetchall()
 
 
-def insert_new_word(word: str, translation: str):
+def insert_new_word(word: str, translation: str, next_shipping_date: date):
     with closing(sqlite3.connect("db/english.db")) as connection:
         with closing(connection.cursor()) as cursor:
             cursor.execute(
-                f"""INSERT INTO english (word, translation, created_at, number_of_messages)
-                    VALUES ({word}, {translation}, {date.today()}, 0);"""
+                f"""INSERT INTO english (word, translation, next_shipping_date, number_of_messages)
+                    VALUES ({word}, {translation}, {next_shipping_date}, 0);"""
             )
 
 

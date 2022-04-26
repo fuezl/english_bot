@@ -1,5 +1,6 @@
 import logging
 import scheduler
+from data_base import create_table
 from telegram_bot import bot
 
 
@@ -11,7 +12,9 @@ def setup_logger():
     requests_log.propagate = True
 
 
-setup_logger()
-scheduler.start()
-bot.infinity_polling()
-scheduler.stop()
+if __name__ == "__main__":
+    setup_logger()
+    create_table()
+    scheduler.start()
+    bot.infinity_polling()
+    scheduler.stop()

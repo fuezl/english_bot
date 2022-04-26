@@ -1,20 +1,78 @@
 import telebot
+from telebot import types
 from telebot.types import Message
 
-from config import Config
-from data_base import select_all_rows
+from config import config
 
-bot = telebot.TeleBot(Config().bot_token, parse_mode="MARKDOWN")
+bot = telebot.TeleBot(config.bot_token, parse_mode="MARKDOWN")
+word = None
+translation = None
 
 
-@bot.message_handler(commands=['all_words'])
-def stop_pipeline(message: Message):
-    words = select_all_rows()
-    reply = ""
-    count = 0
-    for word in words:
-        count += 1
-        reply += f"{word[0]} - {word[1]}"
-        if count < len(words):
-            reply += "\n"
-    bot.reply_to(message, reply)
+def write_message(message: str):
+    bot.send_message(text=message, chat_id=config.chat_id)
+
+
+def start_screen(message: str, shat_id: int):
+    markup = types.ReplyKeyboardMarkup(row_width=2)
+    itembtn1 = types.KeyboardButton('Добавить слово')
+    itembtn2 = types.KeyboardButton('10 случайных слов')
+    itembtn3 = types.KeyboardButton('Удалить слово')
+    markup.add(itembtn1, itembtn2, itembtn3)
+    msg = bot.send_message(shat_id, message, reply_markup=markup)
+    bot.register_next_step_handler(msg, add_english_word)
+
+
+@bot.message_handler(commands=['start'])
+def all_words(message: Message):
+    start_screen("Выберите один из предложенных вариантов", message.chat.id)
+
+
+def add_english_word(message: Message):
+    try:
+        chat_id = message.chat.id
+
+        if message.text == 'Добавить слово':
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+            bt1 = types.KeyboardButton('Отмена')
+            markup.add(bt1)
+            msg = bot.send_message(chat_id, 'Введите слово или фразу на английском', reply_markup=markup)
+            bot.register_next_step_handler(msg, add_translation)
+
+    except Exception as e:
+        print(str(e))
+
+
+def add_translation(message: Message):
+    global word
+    try:
+        chat_id = message.chat.id
+
+        if message.text != 'Отмена':
+            word = message.text
+            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+            bt1 = types.KeyboardButton('Отмена')
+            markup.add(bt1)
+            msg = bot.send_message(chat_id, 'Введите перевод на русский', reply_markup=markup)
+            bot.register_next_step_handler(msg, save_translation)
+        else:
+            start_screen("Слово не добавлено", chat_id)
+
+    except Exception as e:
+        print(str(e))
+
+
+def save_translation(message: Message):
+    global word
+    global translation
+    try:
+        chat_id = message.chat.id
+
+        if message.text != 'Отмена':
+            translation = message.text
+            start_screen(f"Слово/фраза {word!r} с переводом {translation!r} сохранены для последующего повторения", chat_id)
+        else:
+            start_screen(f"Перевод не введён, слово {word!r} не сохранено!", chat_id)
+
+    except Exception as e:
+        print(str(e))
