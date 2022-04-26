@@ -17,7 +17,7 @@ def write_message(message: str):
 
 
 def start_screen(message: str, shat_id: int):
-    markup = types.ReplyKeyboardMarkup(row_width=2)
+    markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     itembtn1 = types.KeyboardButton('Добавить слово')
     itembtn2 = types.KeyboardButton('10 случайных слов')
     itembtn3 = types.KeyboardButton('Удалить слово')
