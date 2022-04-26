@@ -5,7 +5,7 @@ from telebot import types
 from telebot.types import Message
 
 from config import config
-from data_base import insert_new_word
+from data_base import insert_new_word, select_all_rows
 
 bot = telebot.TeleBot(config.bot_token, parse_mode="MARKDOWN")
 word = None
@@ -19,9 +19,10 @@ def write_message(message: str):
 def start_screen(message: str, shat_id: int):
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     itembtn1 = types.KeyboardButton('Добавить слово')
-    itembtn2 = types.KeyboardButton('10 случайных слов')
-    itembtn3 = types.KeyboardButton('Удалить слово')
-    markup.add(itembtn1, itembtn2, itembtn3)
+    itembtn2 = types.KeyboardButton('Удалить слово')
+    itembtn3 = types.KeyboardButton('Вывести 10 случайных слов')
+    itembtn4 = types.KeyboardButton('Вывести все слова')
+    markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
     msg = bot.send_message(shat_id, message, reply_markup=markup)
     bot.register_next_step_handler(msg, add_english_word)
 
@@ -41,6 +42,20 @@ def add_english_word(message: Message):
             markup.add(bt1)
             msg = bot.send_message(chat_id, 'Введите слово или фразу на английском', reply_markup=markup)
             bot.register_next_step_handler(msg, add_translation)
+
+        elif message.text == 'Вывести все слова':
+            words = select_all_rows()
+            if len(words) > 0:
+                reply = ""
+                count = 0
+                for i in words:
+                    count += 1
+                    reply += f"{i[0]} - {i[1]}"
+                    if count < len(words):
+                        reply += "\n"
+                start_screen(reply, chat_id)
+            else:
+                start_screen("Отсутствуют сохранённые слова", chat_id)
 
     except Exception as e:
         print(str(e))
