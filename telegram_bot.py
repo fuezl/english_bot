@@ -1,8 +1,11 @@
+from datetime import date, timedelta
+
 import telebot
 from telebot import types
 from telebot.types import Message
 
 from config import config
+from data_base import insert_new_word
 
 bot = telebot.TeleBot(config.bot_token, parse_mode="MARKDOWN")
 word = None
@@ -65,14 +68,19 @@ def add_translation(message: Message):
 def save_translation(message: Message):
     global word
     global translation
+    chat_id = message.chat.id
     try:
-        chat_id = message.chat.id
-
         if message.text != 'Отмена':
             translation = message.text
-            start_screen(f"Слово/фраза {word!r} с переводом {translation!r} сохранены для последующего повторения", chat_id)
+            next_shipping_date = date.today() + timedelta(days=config.repetition_intervals[0])
+            if isinstance(word, str):
+                insert_new_word(word, translation, next_shipping_date)
+                start_screen(f"Слово/фраза {word!r} с переводом {translation!r} сохранены для последующего повторения", chat_id)
+            else:
+                start_screen("Слово не сохранено, попробуйте ещё раз", chat_id)
         else:
             start_screen(f"Перевод не введён, слово {word!r} не сохранено!", chat_id)
 
     except Exception as e:
         print(str(e))
+        start_screen("Непредвиденная ошибка при сохранении слова, попробуйте ещё раз", chat_id)

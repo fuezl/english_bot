@@ -32,7 +32,8 @@ def insert_new_word(word: str, translation: str, next_shipping_date: date):
         with closing(connection.cursor()) as cursor:
             cursor.execute(
                 f"""INSERT INTO english (word, translation, next_shipping_date, number_of_messages)
-                    VALUES ({word}, {translation}, {next_shipping_date}, 0);"""
+                    VALUES ({word.capitalize()!r}, {translation.capitalize()!r}, {next_shipping_date.strftime('%Y-%m-%d')!r}, 0);"""
             )
+            connection.commit()
 
 
