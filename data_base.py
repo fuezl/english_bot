@@ -49,3 +49,4 @@ def update_word(word: str, next_shipping_date: date, number_of_messages: int):
                     where word = {word!r}
                        or translation = {word!r};"""
             )
+            connection.commit()

@@ -34,7 +34,7 @@ def first_shipment_of_the_day():
     words_to_repeat = []
     all_words = select_all_rows()
     for word in all_words:
-        if datetime.strptime(word[2], config.date_format).date() <= datetime.today():
+        if datetime.strptime(word[2], config.date_format).date() <= datetime.today().date():
             words_to_repeat.append(word)
             if len(config.repetition_intervals) - 1 >= word[3]:
                 new_date = datetime.strptime(word[2], config.date_format).date() + timedelta(days=config.repetition_intervals[word[3]])
