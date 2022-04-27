@@ -1,6 +1,9 @@
+import re
 import sqlite3
 from contextlib import closing
 from datetime import date
+
+import enchant
 
 
 def create_table():
@@ -35,5 +38,3 @@ def insert_new_word(word: str, translation: str, next_shipping_date: date):
                     VALUES ({word.capitalize()!r}, {translation.capitalize()!r}, {next_shipping_date.strftime('%Y-%m-%d')!r}, 0);"""
             )
             connection.commit()
-
-

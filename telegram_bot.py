@@ -1,5 +1,7 @@
+import re
 from datetime import date, timedelta
 
+import enchant
 import telebot
 from telebot import types
 from telebot.types import Message
@@ -10,6 +12,13 @@ from data_base import insert_new_word, select_all_rows
 bot = telebot.TeleBot(config.bot_token, parse_mode="MARKDOWN")
 word = None
 translation = None
+
+
+def cancel_marcup():
+    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+    bt1 = types.KeyboardButton('Отмена')
+    markup.add(bt1)
+    return markup
 
 
 def write_message(message: str):
@@ -37,10 +46,7 @@ def add_english_word(message: Message):
         chat_id = message.chat.id
 
         if message.text == 'Добавить слово':
-            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-            bt1 = types.KeyboardButton('Отмена')
-            markup.add(bt1)
-            msg = bot.send_message(chat_id, 'Введите слово или фразу на английском', reply_markup=markup)
+            msg = bot.send_message(chat_id, 'Введите слово или фразу на английском', reply_markup=cancel_marcup())
             bot.register_next_step_handler(msg, add_translation)
 
         elif message.text == 'Вывести все слова':
@@ -68,11 +74,26 @@ def add_translation(message: Message):
 
         if message.text != 'Отмена':
             word = message.text
-            markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-            bt1 = types.KeyboardButton('Отмена')
-            markup.add(bt1)
-            msg = bot.send_message(chat_id, 'Введите перевод на русский', reply_markup=markup)
-            bot.register_next_step_handler(msg, save_translation)
+
+            wrong_words = []
+            d = enchant.Dict("en_US")
+            pars_words = re.findall("[a-zA-Z]+|[а-яА-Я]+", word)
+            if len(pars_words) > 0:
+                for i in pars_words:
+                    if not d.check(i):
+                        wrong_words.append(i)
+                if len(wrong_words) == 1:
+                    msg = bot.send_message(chat_id, f"Слово {wrong_words[0]!r} не найдено в английском словаре, повторите ввод", reply_markup=cancel_marcup())
+                    bot.register_next_step_handler(msg, add_translation)
+                elif len(wrong_words) > 1:
+                    msg = bot.send_message(chat_id, f"Слова {', '.join(wrong_words)!r} не найдены в английском словаре, повторите ввод", reply_markup=cancel_marcup())
+                    bot.register_next_step_handler(msg, add_translation)
+                else:
+                    msg = bot.send_message(chat_id, 'Введите перевод на русский', reply_markup=cancel_marcup())
+                    bot.register_next_step_handler(msg, save_translation)
+            else:
+                msg = bot.send_message(chat_id, f"Введите английское слово или фразу вместо {word!r}", reply_markup=cancel_marcup())
+                bot.register_next_step_handler(msg, add_translation)
         else:
             start_screen("Слово не добавлено", chat_id)
 
