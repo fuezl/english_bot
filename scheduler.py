@@ -5,36 +5,59 @@ import time
 import schedule
 
 from config import config
-from data_base import select_all_rows
+from data_base import select_all_rows, update_word
 from telegram_bot import write_message
 
 global thread
 
+words_to_repeat = []
 
-def run():
-    all_words = select_all_rows()
-    words = []
-    for word in all_words:
-        count_message = int(word[3] / 2)
-        plus_days = 0
-        if count_message < len(config.repetition_intervals):
-            for i in range(0, count_message + 1):
-                plus_days += config.repetition_intervals[i]
-        else:
-            for value in config.repetition_intervals:
-                plus_days += value
-            plus_days += 20
-        if (datetime.fromisoformat(word[2]).date() + timedelta(days=plus_days)) == datetime.today().date():
-            words.append(word)
+
+def generate_message(list_words: list):
     count = 0
     message = ""
-    for word in words:
+    for word in list_words:
         count += 1
         message += f"{word[0]} - {word[1]}"
-        if count < len(words):
+        if count < len(list_words):
             message += "\n"
+    return message
+
+
+def clear_words():
+    global words_to_repeat
+    words_to_repeat = []
+
+
+def first_shipment_of_the_day():
+    global words_to_repeat
+    words_to_repeat = []
+    all_words = select_all_rows()
+    for word in all_words:
+        if datetime.strptime(word[2], config.date_format).date() <= datetime.today():
+            words_to_repeat.append(word)
+            if len(config.repetition_intervals) - 1 >= word[3]:
+                new_date = datetime.strptime(word[2], config.date_format).date() + timedelta(days=config.repetition_intervals[word[3]])
+            else:
+                new_date = datetime.strptime(word[2], config.date_format).date() + timedelta(days=30)
+            update_word(word[0], new_date, config.repetition_intervals[word[3]])
+    message = generate_message(words_to_repeat)
     if message != "":
         write_message(message)
+    else:
+        write_message("Отсутствуют слова для повторения")
+
+
+def next_shipment_of_the_day():
+    global words_to_repeat
+    if len(words_to_repeat) > 0:
+        message = generate_message(words_to_repeat)
+        if message != "":
+            write_message(message)
+        else:
+            write_message("Отсутствуют слова для повторения")
+    else:
+        first_shipment_of_the_day()
 
 
 def schedule_checker():
@@ -45,8 +68,9 @@ def schedule_checker():
 
 def start():
     global thread
-    schedule.every().day.at("11:24").do(run)
-    schedule.every().day.at("21:50").do(run)
+    schedule.every().day.at("07:19").do(first_shipment_of_the_day)
+    schedule.every().day.at("21:50").do(next_shipment_of_the_day)
+    schedule.every().day.at("22:00").do(clear_words)
     thread = threading.Thread(target=schedule_checker)
     thread.start()
 

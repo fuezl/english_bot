@@ -5,6 +5,7 @@ class Config(object):
     bot_token = None
     repetition_intervals = None
     chat_id = None
+    date_format = None
 
     def __new__(cls):
         if not hasattr(cls, 'instance'):
@@ -25,6 +26,7 @@ class Config(object):
                 cls.repetition_intervals = cls.repetition_intervals.split(",")
                 for i in range(0, len(cls.repetition_intervals)):
                     cls.repetition_intervals[i] = int(cls.repetition_intervals[i])
+            cls.date_format = "'%Y-%m-%d'"
         return cls
 
 
