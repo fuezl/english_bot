@@ -7,7 +7,7 @@ from telebot import types
 from telebot.types import Message
 
 from config import config
-from data_base import insert_new_word, select_all_rows
+from data_base import insert_new_word, select_all_rows, check_exist_word, db_delete_word
 
 bot = telebot.TeleBot(config.bot_token, parse_mode="MARKDOWN")
 word = None
@@ -37,7 +37,7 @@ def start_screen(message: str, shat_id: int):
 
 
 @bot.message_handler(commands=['start'])
-def all_words(message: Message):
+def start(message: Message):
     start_screen("Выберите один из предложенных вариантов", message.chat.id)
 
 
@@ -48,6 +48,10 @@ def add_english_word(message: Message):
         if message.text == 'Добавить слово':
             msg = bot.send_message(chat_id, 'Введите слово или фразу на английском', reply_markup=cancel_marcup())
             bot.register_next_step_handler(msg, add_translation)
+
+        elif message.text == 'Удалить слово':
+            msg = bot.send_message(chat_id, 'Введите слово или его перевод которое хотите удалить', reply_markup=cancel_marcup())
+            bot.register_next_step_handler(msg, delete_word)
 
         elif message.text == 'Вывести все слова':
             words = select_all_rows()
@@ -120,3 +124,21 @@ def save_translation(message: Message):
     except Exception as e:
         print(str(e))
         start_screen("Непредвиденная ошибка при сохранении слова, попробуйте ещё раз", chat_id)
+
+
+def delete_word(message: Message):
+    chat_id = message.chat.id
+    mes = message.text.lower().capitalize()
+    try:
+        if mes != 'Отмена':
+            if check_exist_word(mes):
+                db_delete_word(mes)
+                start_screen(f"Слово/перевод {mes!r} удалено из словаря", chat_id)
+            else:
+                start_screen(f"{mes!r} не найдено в словаре", chat_id)
+        else:
+            start_screen("Удаление отменено", chat_id)
+
+    except Exception as e:
+        print(str(e))
+        start_screen("Непредвиденная ошибка при удалении слова, попробуйте ещё раз", chat_id)

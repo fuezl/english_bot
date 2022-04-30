@@ -29,6 +29,21 @@ def select_all_rows():
             ).fetchall()
 
 
+def check_exist_word(word: str):
+    with closing(sqlite3.connect("db/english.db")) as connection:
+        with closing(connection.cursor()) as cursor:
+            answer = cursor.execute(
+                f"""SELECT word, translation, next_shipping_date, number_of_messages
+                    FROM english
+                    WHERE word = {word.capitalize()!r} COLLATE NOCASE
+                       or translation = {word.capitalize()!r} COLLATE NOCASE
+                    LIMIT 1;"""
+            ).fetchone()
+    if answer is None:
+        return False
+    return True
+
+
 def insert_new_word(word: str, translation: str, next_shipping_date: date):
     with closing(sqlite3.connect("db/english.db")) as connection:
         with closing(connection.cursor()) as cursor:
@@ -46,7 +61,19 @@ def update_word(word: str, next_shipping_date: date, number_of_messages: int):
                 f"""update english
                     set next_shipping_date = {next_shipping_date.strftime(config.date_format)!r},
                         number_of_messages = {number_of_messages}
-                    where word = {word!r}
-                       or translation = {word!r};"""
+                    where word = {word.capitalize()!r} COLLATE NOCASE
+                       or translation = {word.capitalize()!r} COLLATE NOCASE;"""
+            )
+            connection.commit()
+
+
+def db_delete_word(word: str):
+    with closing(sqlite3.connect("db/english.db")) as connection:
+        with closing(connection.cursor()) as cursor:
+            cursor.execute(
+                f"""DELETE
+                    FROM english
+                    WHERE word = {word.capitalize()!r} COLLATE NOCASE
+                       or translation = {word.capitalize()!r} COLLATE NOCASE;"""
             )
             connection.commit()
