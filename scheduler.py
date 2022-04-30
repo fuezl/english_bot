@@ -59,7 +59,7 @@ def start():
     global thread
     schedule.every().day.at("07:19").do(first_shipment_of_the_day)
     schedule.every().day.at("21:50").do(next_shipment_of_the_day)
-    schedule.every().day.at("22:00").do(clear_words)
+    schedule.every().day.at("23:55").do(clear_words)
     thread = threading.Thread(target=schedule_checker)
     thread.start()
 
