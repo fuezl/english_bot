@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import random
 import re
 from datetime import date, timedelta

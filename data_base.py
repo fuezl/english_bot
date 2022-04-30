@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import sqlite3
 from contextlib import closing
 from datetime import date

@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import logging
 import scheduler
 from data_base import create_table
