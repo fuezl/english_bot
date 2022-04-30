@@ -6,22 +6,11 @@ import schedule
 
 from config import config
 from data_base import select_all_rows, update_word
-from telegram_bot import write_message
+from telegram_bot import write_message, generate_message
 
 global thread
 
 words_to_repeat = []
-
-
-def generate_message(list_words: list):
-    count = 0
-    message = ""
-    for word in list_words:
-        count += 1
-        message += f"{word[0]} - {word[1]}"
-        if count < len(list_words):
-            message += "\n"
-    return message
 
 
 def clear_words():

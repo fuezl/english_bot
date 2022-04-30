@@ -1,5 +1,7 @@
+import random
 import re
 from datetime import date, timedelta
+from typing import Union
 
 import enchant
 import telebot
@@ -14,6 +16,17 @@ word = None
 translation = None
 
 
+def generate_message(list_words: list) -> str:
+    count = 0
+    message = ""
+    for i in list_words:
+        count += 1
+        message += f"{i[0]} - {i[1]}"
+        if count < len(list_words):
+            message += "\n"
+    return message
+
+
 def cancel_marcup():
     markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
     bt1 = types.KeyboardButton('Отмена')
@@ -21,17 +34,17 @@ def cancel_marcup():
     return markup
 
 
-def write_message(message: str):
-    bot.send_message(text=message, chat_id=config.chat_id)
+def write_message(message: str, chat_id: Union[int, str] = config.chat_id):
+    bot.send_message(text=message, chat_id=chat_id)
 
 
-def start_screen(message: str, shat_id: int):
+def start_screen(message: str, shat_id: Union[int, str]):
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-    itembtn1 = types.KeyboardButton('Добавить слово')
-    itembtn2 = types.KeyboardButton('Удалить слово')
-    itembtn3 = types.KeyboardButton('Вывести 10 случайных слов')
-    itembtn4 = types.KeyboardButton('Вывести все слова')
-    markup.add(itembtn1, itembtn2, itembtn3, itembtn4)
+    button1 = types.KeyboardButton('Добавить слово')
+    button2 = types.KeyboardButton('Удалить слово')
+    button3 = types.KeyboardButton('Вывести 10 случайных слов')
+    button4 = types.KeyboardButton('Вывести все слова')
+    markup.add(button1, button2, button3, button4)
     msg = bot.send_message(shat_id, message, reply_markup=markup)
     bot.register_next_step_handler(msg, add_english_word)
 
@@ -54,18 +67,32 @@ def add_english_word(message: Message):
             bot.register_next_step_handler(msg, delete_word)
 
         elif message.text == 'Вывести все слова':
-            words = select_all_rows()
-            if len(words) > 0:
-                reply = ""
-                count = 0
-                for i in words:
-                    count += 1
-                    reply += f"{i[0]} - {i[1]}"
-                    if count < len(words):
-                        reply += "\n"
-                start_screen(reply, chat_id)
+            all_words = select_all_rows()
+            if len(all_words) > 0:
+                start_screen(generate_message(all_words), chat_id)
             else:
                 start_screen("Отсутствуют сохранённые слова", chat_id)
+
+        elif message.text == 'Вывести 10 случайных слов':
+            all_words = select_all_rows()
+            if len(all_words) == 0:
+                start_screen("Словарь пусть, добавьте новые слова для изучения", chat_id)
+            elif len(all_words) < 10:
+                case = 'слов'
+                if len(all_words) == 1:
+                    case += "о"
+                elif 2 <= len(all_words) <= 4:
+                    case += "а"
+                write_message(f"В словаре содержится только {len(all_words)} {case} для повторения", chat_id)
+                start_screen(generate_message(all_words), chat_id)
+            else:
+                ten_words = []
+                for i in range(10):
+                    int_random = random.randint(0, len(all_words) - 1)
+                    ten_words.append(all_words.pop(int_random))
+                start_screen(generate_message(ten_words), chat_id)
+        else:
+            start_screen("Неизвестная команда, нужно выбрать один из предложенных вариантов", chat_id)
 
     except Exception as e:
         print(str(e))

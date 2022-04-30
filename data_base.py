@@ -29,17 +29,18 @@ def select_all_rows():
             ).fetchall()
 
 
-def check_exist_word(word: str):
+def check_exist_word(word: str) -> bool:
     with closing(sqlite3.connect("db/english.db")) as connection:
         with closing(connection.cursor()) as cursor:
             answer = cursor.execute(
-                f"""SELECT word, translation, next_shipping_date, number_of_messages
-                    FROM english
-                    WHERE word = {word.capitalize()!r} COLLATE NOCASE
-                       or translation = {word.capitalize()!r} COLLATE NOCASE
-                    LIMIT 1;"""
-            ).fetchone()
-    if answer is None:
+                f"""SELECT EXISTS(
+               SELECT word, translation, next_shipping_date, number_of_messages
+               FROM english
+               WHERE word = {word.capitalize()!r} COLLATE NOCASE
+                  or translation = {word.capitalize()!r} COLLATE NOCASE
+           ) AS exist"""
+            ).fetchone()[0]
+    if answer == 0:
         return False
     return True
 
