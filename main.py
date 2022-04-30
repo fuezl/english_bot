@@ -19,4 +19,3 @@ if __name__ == "__main__":
     create_table()
     scheduler.start()
     bot.infinity_polling()
-    scheduler.stop()

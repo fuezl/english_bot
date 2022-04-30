@@ -40,7 +40,7 @@ def write_message(message: str, chat_id: Union[int, str] = config.chat_id):
     bot.send_message(text=message, chat_id=chat_id)
 
 
-def start_screen(message: str, shat_id: Union[int, str]):
+def start_screen(message: str, shat_id: Union[int, str] = config.chat_id):
     markup = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
     button1 = types.KeyboardButton('Добавить слово')
     button2 = types.KeyboardButton('Удалить слово')

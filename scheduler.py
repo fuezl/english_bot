@@ -8,7 +8,7 @@ import schedule
 
 from config import config
 from data_base import select_all_rows, update_word
-from telegram_bot import write_message, generate_message
+from telegram_bot import write_message, generate_message, start_screen, bot
 
 global thread
 
@@ -64,8 +64,3 @@ def start():
     schedule.every().day.at("23:55").do(clear_words)
     thread = threading.Thread(target=schedule_checker)
     thread.start()
-
-
-def stop():
-    global thread
-    thread.join()
