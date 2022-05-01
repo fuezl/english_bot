@@ -28,7 +28,7 @@ def generate_message(list_words: list) -> str:
         else:
             message += f"{i[0]} - {i[1]}"
         if count < len(list_words):
-            message += "\n"
+            message += "\n\n"
     return message
 
 
