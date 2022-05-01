@@ -23,7 +23,10 @@ def generate_message(list_words: list) -> str:
     message = ""
     for i in list_words:
         count += 1
-        message += f"{i[0]} - {i[1]}"
+        if count % 2 == 1:
+            message += f"*{i[0]} - {i[1]}*"
+        else:
+            message += f"{i[0]} - {i[1]}"
         if count < len(list_words):
             message += "\n"
     return message
