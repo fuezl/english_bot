@@ -13,7 +13,7 @@ from telebot.types import Message
 from config import config
 from data_base import insert_new_word, select_all_rows, check_exist_word, db_delete_word
 
-bot = telebot.TeleBot(config.bot_token, parse_mode="MARKDOWN")
+bot = telebot.TeleBot(config.bot_token, parse_mode="MarkdownV2")
 word = None
 translation = None
 
@@ -24,9 +24,9 @@ def generate_message(list_words: list) -> str:
     for i in list_words:
         count += 1
         if count % 2 == 1:
-            message += f"*{i[0]} - {i[1]}*"
+            message += f"*{i[0]} \\- ||{i[1]}||*"
         else:
-            message += f"{i[0]} - {i[1]}"
+            message += f"{i[0]} \\- ||{i[1]}||"
         if count < len(list_words):
             message += "\n\n"
     return message
