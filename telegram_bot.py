@@ -18,15 +18,22 @@ word = None
 translation = None
 
 
+def fix_telegram_message(message: str) -> str:
+    for ch in ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', ' -', '=', '|', '{', '}', '.', '!']:
+        if ch in message:
+            message = message.replace(ch, "\\" + ch)
+    return message
+
+
 def generate_message(list_words: list) -> str:
     count = 0
     message = ""
     for i in list_words:
         count += 1
         if count % 2 == 1:
-            message += f"*{i[0]} \\- ||{i[1]}||*"
+            message += f"*{fix_telegram_message(i[0])} \\- ||{fix_telegram_message(i[1])}||*"
         else:
-            message += f"{i[0]} \\- ||{i[1]}||"
+            message += f"{fix_telegram_message(i[0])} \\- ||{fix_telegram_message(i[1])}||"
         if count < len(list_words):
             message += "\n\n"
     return message
@@ -68,7 +75,8 @@ def add_english_word(message: Message):
             bot.register_next_step_handler(msg, add_translation)
 
         elif message.text == 'Удалить слово':
-            msg = bot.send_message(chat_id, 'Введите слово или его перевод которое хотите удалить', reply_markup=cancel_marcup())
+            msg = bot.send_message(chat_id, 'Введите слово или его перевод которое хотите удалить',
+                                   reply_markup=cancel_marcup())
             bot.register_next_step_handler(msg, delete_word)
 
         elif message.text == 'Вывести все слова':
@@ -119,16 +127,21 @@ def add_translation(message: Message):
                     if not d.check(i):
                         wrong_words.append(i)
                 if len(wrong_words) == 1:
-                    msg = bot.send_message(chat_id, f"Слово {wrong_words[0]!r} не найдено в английском словаре, повторите ввод", reply_markup=cancel_marcup())
+                    msg = bot.send_message(chat_id,
+                                           f"Слово {wrong_words[0]!r} не найдено в английском словаре, повторите ввод",
+                                           reply_markup=cancel_marcup())
                     bot.register_next_step_handler(msg, add_translation)
                 elif len(wrong_words) > 1:
-                    msg = bot.send_message(chat_id, f"Слова {', '.join(wrong_words)!r} не найдены в английском словаре, повторите ввод", reply_markup=cancel_marcup())
+                    msg = bot.send_message(chat_id,
+                                           f"Слова {', '.join(wrong_words)!r} не найдены в английском словаре, повторите ввод",
+                                           reply_markup=cancel_marcup())
                     bot.register_next_step_handler(msg, add_translation)
                 else:
                     msg = bot.send_message(chat_id, 'Введите перевод на русский', reply_markup=cancel_marcup())
                     bot.register_next_step_handler(msg, save_translation)
             else:
-                msg = bot.send_message(chat_id, f"Введите английское слово или фразу вместо {word!r}", reply_markup=cancel_marcup())
+                msg = bot.send_message(chat_id, f"Введите английское слово или фразу вместо {word!r}",
+                                       reply_markup=cancel_marcup())
                 bot.register_next_step_handler(msg, add_translation)
         else:
             start_screen("Слово не добавлено", chat_id)
@@ -147,7 +160,8 @@ def save_translation(message: Message):
             next_shipping_date = date.today() + timedelta(days=config.repetition_intervals[0])
             if isinstance(word, str):
                 insert_new_word(word, translation, next_shipping_date)
-                start_screen(f"Слово/фраза {word!r} с переводом {translation!r} сохранены для последующего повторения", chat_id)
+                start_screen(f"Слово/фраза {word!r} с переводом {translation!r} сохранены для последующего повторения",
+                             chat_id)
             else:
                 start_screen("Слово не сохранено, попробуйте ещё раз", chat_id)
         else:
